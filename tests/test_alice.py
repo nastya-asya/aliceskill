@@ -205,7 +205,7 @@ def get_letter():
     следующее слово.
     :return: последняя буква."""
 
-    word = session_data[user_id][-1]
+    word = session_data["47C73714B580ED2469056E71081159529FFC676A4E5B059D629A819E857DC2F8"][-1]
     reversed_word = word[::-1]
     for letter in reversed_word:
         if letter not in ('Ы', 'Ь', 'Ъ'):

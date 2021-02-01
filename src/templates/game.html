@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+<!-- Блок для основного контента -->
+{% block content %}
+
+<!-- Блок для вывода задания -->
+<div id="task">
+    <h2>Напишите название города</h2>
+</div>
+
+<!-- Форма для отправки названий городов -->
+<form method="POST" action="{{ url_for('site.finish') }}">
+    <div class="form-group">
+        <label for="city">Ваш ответ</label>
+        <input type="text" name="city" id="city" class="form-control" oninput="validate()">
+    </div>
+    <input type="button" value="Ответить" onclick="send()" class="btn btn-primary">
+    <input type="submit" value="Завершить" class="btn btn-secondary">
+</form>
+
+<div id="error"></div>
+
+<div id="msg"></div>
+
+{% endblock %}
+
+<!-- Блок для вставки js скрипта -->
+{% block script %}
+<script>
+    /**
+     * Функция получает значение куки.
+     * @param name: имя искомого куки.
+     * @return: значение.
+     */
+    function get_cookie(name) {
+        let cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            var parts = cookies[i].split("="),
+                name = parts[0],
+                value = parts[1];
+            if (name == 'letter')
+                return value;
+        }
+        return '';
+    }
+
+    /**
+     * Функция асинхронно отправляет сообщение-ответ на сервер.
+     */
+    async function send() {
+        let city = document.querySelector('input[name=city]');
+        let data = { city: city.value };
+        let response = await fetch("{{ url_for('site.game') }}",
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                body: JSON.stringify(data)
+            });
+        data = await response.json();
+        if (response.status == 200)
+            await modify_page(data);
+    }
+
+    /**
+     * Функция обрабатывает ответ на запрос и изменяет содержимое страниц.
+     * @param data: ответ на запрос.
+     */
+    let modify_page = (data) => {
+        let error = document.querySelector('#error');
+        let msg = document.querySelector('#msg');
+        let task = document.querySelector('#task');
+        if (data.status == 1) {
+            error.innerHTML = `<h2>${data.text}</h2>`;
+            msg.innerHTML = '';
+        } else if (data.status == 2) {
+            error.innerHTML = '';
+            msg.innerHTML = `<h2>${data.text}</h2>`;
+            task.innerHTML = '<h2>Вы победили</h2>';
+        } else if (data.status == 3) {
+            error.innerHTML = '';
+            msg.innerHTML = `<h2>${data.text}</h2>`;
+            task.innerHTML = `<h2>Напишите название города на букву ${data.letter}</h2>`;
+            document.cookie = `letter=${data.letter}`;
+        }
+    }
+
+    /**
+     * Функция проверяет, что пользователь вводит ответ в нужном формате.
+     */
+    let validate = () => {
+        let input = document.querySelector('input[type=text]');
+        let letter = get_cookie('letter');
+        let reg = `^${letter}[а-яА-Я\-\ ]*$`;
+        reg = new RegExp(reg, 'i');
+        let ok = reg.exec(input.value);
+        if (!ok)
+            input.value = input.value.slice(0, input.value.length - 1);
+    }
+</script>
+{% endblock %}

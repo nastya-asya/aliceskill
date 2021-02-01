@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/nastya-asya/aliceskill.svg?branch=main)](https://travis-ci.com/nastya-asya/aliceskill)
+
 # aliceskill
 
 Навык реализует игру Города
